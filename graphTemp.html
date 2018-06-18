@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+  <title>Network | Basic usage</title>
+
+  <script type="text/javascript" src="vis.js"></script>
+  <link href="vis.css" rel="stylesheet" type="text/css" />
+
+  <style type="text/css">
+    #mynetwork {
+      width: 1920px;
+      height: 1080px;
+      border: 1px solid lightgray;
+    }
+  </style>
+</head>
+<body>
+
+<div id="mynetwork"></div>
+
+<script type="text/javascript">
+  // create an array with nodes
+  var nodes = new vis.DataSet([
+      {{range .Node}}
+        {{.}}
+      {{end}}
+  ]);
+
+  // create an array with edges
+  var edges = new vis.DataSet([
+        {{range .Link}}
+            {{range .}}
+                {{.}}
+            {{end}}
+        {{end}}
+  ]);
+
+  // create a network
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+  var options = {                 
+
+              physics: {
+                    stabilization: {iterations: 150},
+                    solver : "forceAtlas2Based",
+                    forceAtlas2Based : {
+                      gravitationalConstant : -150
+                    }
+                }};
+  var network = new vis.Network(container, data, options);
+</script>
+
+<script>
+  var ws = new WebSocket("ws://localhost:8000/info")
+  var oldid = -1
+  ws.onmessage=function(event) {
+    if (oldid > -1) {
+      nodes.update({
+        id : oldid,
+        color: '#97C2FC'
+      })
+    }
+    var data = JSON.parse(event.data)
+    nodes.update({
+      id: data.id,
+      label : data.text,
+      color : '#3BA533'
+    })
+    oldid = data.id
+    network.redraw()
+  }
+
+</script>
+
+</body>
+</html>
